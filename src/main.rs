@@ -1,126 +1,122 @@
-#[derive(Debug)]
-struct Rect {
-    width: i32,
-    height: i32,
-}
-struct RectSup {
-    width: i32,
-    height: i32,
-}
-impl RectSup {
-    fn get_area (&self) -> i32 {
-        self.width * self.height
-    }
-}
+/**
+ * String类型
+ * 开发者经常会被字符串困扰的原因
+ * Rust倾向暴露可能的错误
+ * 字符串数据结构复杂
+ * rust字符串使用了UTF-8编码
+ *
+ * 字符串是基于byte的一个集合
+ * 提供了一些方法可以将byte解析为文本
+ *
+ * 字符串是什么?
+ * 在Rust核心语言层面,只有一个字符串类型:字符串切片str(&str)
+ * 字符串切片是对存储在其他地方或UTF-8编码的字符串引用
+ * 字符串字面值:存储在二进制文件中,也是字符串切片
+ */
+
+/*
+ * String类型
+ * 它来自于标准库,而不是核心语言
+ * 可增长,修改,可拥有所有权
+ * 同样采用UTF-8编码形式\
+ * 我们通常手的字符串是指String和&str
+ *
+ * 在标准库中也提供了其他字符串类型,例如OsString,OsString,CString,CStr
+ */
 
 fn main() {
-    // 使用struct关键字并为整个stract命名
-    // 在花括号内，为所有字段feild定义名称和类型
-    // 例如
-    struct User {
-        name: String,
-        active: bool,
-        count: u64,
+    /*
+     * 创建一个新的字符串
+     * 1.String::new()
+     * let s = String::new();
+     * 
+     * 2.使用初始值来创建String
+     * to_string()方法,可用于实现了display trait的类型,包括字符串字面值
+     * let s = "test".to_string();
+     * 3.使用String::from()函数从字面值创建String
+     * let s = String::from("test");
+     */
+    
+    // 更新String
+    // push_str()方法: 把一个字符串切片附加到String
+    // push方法不会获取参数的所有权
+    let mut s = "123".to_string();
+    s.push_str("456");
+    println!("{}", s);
+    // push()方法:将单个字符附加到String
+    s.push('7'); //这里使用的单引号 表示ch类型
+    println!("{}", s);
+    // 拼接字符串
+    // + 链接字符串
+    // 注意使用+连接符这个方法类似于 fn add(self, s: &str) -> String {...}
+    let s1 = String::from("123");
+    let s2 = String::from("456");
+    let s3 = s1 + &s2; // 拼接之后s1所有权消失, s2所有权还存在
+    println!("{}", s3);
+    // format!:链接多个字符串
+    // format类似于println,不过format会将该文本内容返回
+    // 在不使用format的情况下
+    let s1 = String::from("i");
+    let s2 = String::from("love");
+    let s3 = String::from("you");
+    let s = s1 + " " + &s2 + " " + &s3;
+    println!("{}", s);
+    // 使用format
+    // 使用format不会获取参数的所有权 !!!
+    let s1 = String::from("i");
+    let s2 = String::from("love");
+    let s3 = String::from("you");
+    let s = format!("{} {} {}", s1, s2, s3);
+    println!("{}", s);
+
+    // 对String按索引的形式进行访问会直接报错
+    // Rust字符串不支持索引的语法访问
+    // String是对Vec<u8>的包装
+
+    // len()方法可以获取字符串长度
+    // 对于某些特定语言会使用unicode标量值,它得每一个len()为2
+    let len = String::from("hello").len();
+    println!("{}", len); // 5
+
+    // Rust有三种看待字符串的方式
+    //字节(bytes),标量值(Scalar Values),字型戳(Grapheme Clusters)
+
+    // 字节
+    let s = String::from("我爱你");
+    for b in s.bytes() {
+        println!("{}", b); // 打印9次
     }
-
-    let user = User {
-        name: String::from("_"),
-        active: true,
-        count: 64,
-    };
-    // 可以通过点标记法直接获取struct直接获取
-    println!("{},{},{}", user.active, user.name, user.count);
-
-    //一旦struct的实例是可变的，那么实例中的所有字段都是可以变的
-    // struct可以作为函数的返回值
-    let _return = get_struct(String::from("_"), false, 41);
-    fn get_struct(name: String, active: bool, count: u64) -> User {
-        User {
-            name,
-            active,
-            count,
-        }
+    // 标量值
+    for c in s.chars() {
+        println!("{}", c); // 打印三次
     }
-    // 字段初始化的简写
-    // 当字段名与字段值相同时，可以使用字段初始化简写方式
-    let name = String::from("_");
-    let _user1 = User {
-        name, // 这里可以简写name
-        active: false,
-        count: 1,
-    };
-    // struct可以使用更新语法 .. 注意 这是两个点
-    let test1 = User {
-        active: true,
-        name: String::from("_"),
-        count: 10,
-    };
+    // 字型戳
+    // 标准库没有提供
 
-    let _test2 = User {
-        active: false,
-        ..test1
-    };
+    // Rust不允许对String进行索引的最后一个原因
+        // 索引操作消耗一个常量时间(O(1))
+        // 而String无法保证,需要遍历所有的内容,来确定有多少个合法字符
 
-    // Tuple Struct
-    // 可以定义一个类似于tuple的struct
-    // Tuple struct整体有个名，但是里面的元素没有名
-    // 使用：想给整个tuple起名，并让他不同于其他tuple，而且也不需要给每个元素起名
-    // 例如
-    struct Color(i32, i32, i32);
-    let _color = Color(255, 255, 255);
-    struct Point(i32, i32, i32);
-    let Point(x, y, z) = Point(1, 2, 3);
-    println!("{}{}{}", x, y, z);
+    // 切割String
+    // 可以使用[]和一个范围来创建字符串切片
+    // 虽然允许切割字符串,但是需要谨慎使用
+    // 如果切割时,跨越了字符边界,程序就会panic
 
-    // unit like Struct(没有任何字段)
-    // 可以定义没有任何字段的struct,叫做unit-like struct(因为与（）单元类型类似)
-    // 适用于需要在某个类型上实现某个trait,但是在里面又没有想要存储的数据
+    let s = "一个范围来创建字符串切片";
+    let s = &s[3..6]; // 如果写&[3..5]会报恐慌,因为它不是一个边界,中文字符没3个字节算一个标量值边界
+    println!("{}", s);
+    
+    // 遍历String
+    // 对于字节可以使用bytes()
+    // 对于标量值使用charts()
+    // 对于字形戳,标准库未提供
 
-    // Struct的字段使用了String而不是&str
-    // 该struct拥有其所有数据
-    // 只要struct实列是有效的，那么里面的所有字段数据也是有效的
-    // struct里也可以放引用，但这需要使用声明周期
-
-    // struct案例
-    // 求长方形的面积
-
-
-
-    let rect = Rect { width: 30, height: 50 };
-    let area = get_area(&rect);
-    fn get_area(Rect{width, height}: &Rect) -> i32 {
-        width * height
-    }
-    println!("area---{}", area);
-    // 关于struct的打印
-    // 方法一： 使用debug
-        // 在首行添加#[derive(Debug)]， struct声明应在外层，然后使用println!("{:?}", x);
-        // derive是派生的意思
-    println!("{:?}", rect);
-    // 方法二： 使用:#?
-        // :#?的方法会使显示结果更为直观
-    println!("{:#?}", rect);
-
-    // struct方法
-    // struct的方法和函数类似 fn关键字 名称 参数 返回值
-    // 方法与函数的区别
-        // 方法是在struct（或者enum, trait对象）的上下文定义
-        // 第一个参数是self，即表示方法被调用的struct实例 
-    // impl块内定义方法
-    // 方法第一个参数是&self， 也可以获得其所有权或可变借用 和其他参数一样
-    // 列子：现在我们把求长方形的面积优化
-
-    // struct 见第6-14行
-    let rect = RectSup {
-        height: 30,
-        width: 50
-    };
-
-    println!("RectSupArea{}", rect.get_area());
-
-    // 关联函数
-    // 可以在impl块内定义不把self作为第一个参数的函数，它们叫做关联函数，不是方法
-    // 关联函数的访问使用::（::也可以创建模块命名空间）
-    // 可以把关联函数理解为静态方法
-    // 每个struct允许拥有多个impl块
+    /*
+     * String不简单
+     * 
+     * Rust选择将正确处理String数据作为所有Rust程序的默认行为
+     *      程序员必须在处理UTF-8编码数据之前投入更多精力
+     *      不过优势防止在于在开发后期处理涉及非ASCII字符的错误
+     * 
+     */
 }
