@@ -1,122 +1,97 @@
-/**
- * String类型
- * 开发者经常会被字符串困扰的原因
- * Rust倾向暴露可能的错误
- * 字符串数据结构复杂
- * rust字符串使用了UTF-8编码
- *
- * 字符串是基于byte的一个集合
- * 提供了一些方法可以将byte解析为文本
- *
- * 字符串是什么?
- * 在Rust核心语言层面,只有一个字符串类型:字符串切片str(&str)
- * 字符串切片是对存储在其他地方或UTF-8编码的字符串引用
- * 字符串字面值:存储在二进制文件中,也是字符串切片
- */
+use std::collections::HashMap;
 
-/*
- * String类型
- * 它来自于标准库,而不是核心语言
- * 可增长,修改,可拥有所有权
- * 同样采用UTF-8编码形式\
- * 我们通常手的字符串是指String和&str
+/**
+ * HashMap 键值对的形式存储数据
+ * 一个键key对应一个值Value
+ * Hash函数：决定如何在内存中存放K和V
+ * 适用场景：通过K(任何类型)来寻找数据，而不是通过索引
  *
- * 在标准库中也提供了其他字符串类型,例如OsString,OsString,CString,CStr
- */
+ * hashMap没有在标准库中，使用时需要先导入 use std::collections::HashMap;
+ * hashMap是将数据存储在heap上
+ * hashMap所有的K，V必须是同一种类型
+ *
+*/
 
 fn main() {
-    /*
-     * 创建一个新的字符串
-     * 1.String::new()
-     * let s = String::new();
-     * 
-     * 2.使用初始值来创建String
-     * to_string()方法,可用于实现了display trait的类型,包括字符串字面值
-     * let s = "test".to_string();
-     * 3.使用String::from()函数从字面值创建String
-     * let s = String::from("test");
-     */
-    
-    // 更新String
-    // push_str()方法: 把一个字符串切片附加到String
-    // push方法不会获取参数的所有权
-    let mut s = "123".to_string();
-    s.push_str("456");
-    println!("{}", s);
-    // push()方法:将单个字符附加到String
-    s.push('7'); //这里使用的单引号 表示ch类型
-    println!("{}", s);
-    // 拼接字符串
-    // + 链接字符串
-    // 注意使用+连接符这个方法类似于 fn add(self, s: &str) -> String {...}
-    let s1 = String::from("123");
-    let s2 = String::from("456");
-    let s3 = s1 + &s2; // 拼接之后s1所有权消失, s2所有权还存在
-    println!("{}", s3);
-    // format!:链接多个字符串
-    // format类似于println,不过format会将该文本内容返回
-    // 在不使用format的情况下
-    let s1 = String::from("i");
-    let s2 = String::from("love");
-    let s3 = String::from("you");
-    let s = s1 + " " + &s2 + " " + &s3;
-    println!("{}", s);
-    // 使用format
-    // 使用format不会获取参数的所有权 !!!
-    let s1 = String::from("i");
-    let s2 = String::from("love");
-    let s3 = String::from("you");
-    let s = format!("{} {} {}", s1, s2, s3);
-    println!("{}", s);
+    // 创建HashMao
+    let mut map = HashMap::new();
+    // 插入HashMap
+    map.insert(String::from("10"), 10);
 
-    // 对String按索引的形式进行访问会直接报错
-    // Rust字符串不支持索引的语法访问
-    // String是对Vec<u8>的包装
+    // 使用collect方式创建
+    // 在元素为Tuple的Vector上使用collect方式，可以组件一个HashMap
+    // 要求Tuple有两个值，一个作为K，一个作为V
+    // collect方法可以把数据整合成多种集合类型，包括HashMap
+    // 返回值需要显式指明类型
+    let colors = vec![String::from("yellow"), String::from("blue")];
+    let scores = vec![10, 50];
+    // 必须指明HashMap类型，K与V可以使用_代替，程序会自动推断KV类型，但
+    // let res: HashMap<&String, &i32> = colors.iter().zip(scores.iter()).collect();
+    let res: HashMap<&String, &i32> = colors.iter().zip(scores.iter()).collect();
+    println!("{:#?}", res);
 
-    // len()方法可以获取字符串长度
-    // 对于某些特定语言会使用unicode标量值,它得每一个len()为2
-    let len = String::from("hello").len();
-    println!("{}", len); // 5
+    // Hash Map的所有权规则
+    // 对于实现了copy trait的类型，值会被复制到HashMao中
+    // 对于拥有所有权的值，如String。值会被移动，所有权会转交给hashMap
 
-    // Rust有三种看待字符串的方式
-    //字节(bytes),标量值(Scalar Values),字型戳(Grapheme Clusters)
+    let key = String::from("key");
+    let value = String::from("value");
+    let mut map = HashMap::new();
+    map.insert(key, value);
+    // println!("{}{}", key, value); // 此时key，value的所有权被移交，打印时会报错
 
-    // 字节
-    let s = String::from("我爱你");
-    for b in s.bytes() {
-        println!("{}", b); // 打印9次
+    // 如果只将引用插入hashMap 则不会移交所有权
+    let key = String::from("key");
+    let value = String::from("value");
+    let mut map = HashMap::new();
+    map.insert(&key, &value);
+    println!("{}{}", key, value); // 因为插入的引用 所以可以被打印
+
+    // 在HashMap有效期间，被引用的值必须保持有效
+
+    // 访问HashMap中的值
+    match map.get(&key) {
+        Some(v) => println!("{}", v),
+        None => println!("没有值"),
+    };
+    // 遍历hashMap
+    // 使用for循环
+    for (key, value) in &map {
+        println!("{}--{}", key, value);
     }
-    // 标量值
-    for c in s.chars() {
-        println!("{}", c); // 打印三次
+
+    // 更新hashMap
+    // HashMap长度是可变的
+    // 每一个key同时只能对应一个V
+    // 更新hashMap中的数据
+    // K已经存在，可以替换或保留现有值，或者可以合并现有的V和新的V
+    // 如果K不存在，直接添加一对新的K，V
+
+    // 替换
+    let mut res = HashMap::new();
+    res.insert(String::from("yellow"), 10);
+    res.insert(String::from("yellow"), 15);
+    println!("{:#?}", res); // 这里K是一样的所以被替换 { "yellow": 15, }
+
+    // 在K值不对应的情况下才插入V
+    // entry方法：检查指定的K是否对应一个V
+
+    res.entry(String::from("yellow")).or_insert(16); // 该条不会被插入因为yellow已经存在
+    res.entry(String::from("blue")).or_insert(18);
+    println!("{:#?}", res); // 这里K是一样的所以被替换 { "yellow": 15, }
+
+    // 案列 计算单词出现的次数
+    let s = "i love u but u hate me i am sad";
+    let mut map = HashMap::new();
+    for i in s.split_whitespace() {
+        let count = map.entry(i).or_insert(0);
+        *count += 1
     }
-    // 字型戳
-    // 标准库没有提供
+    println!("{:#?}", map);
 
-    // Rust不允许对String进行索引的最后一个原因
-        // 索引操作消耗一个常量时间(O(1))
-        // 而String无法保证,需要遍历所有的内容,来确定有多少个合法字符
-
-    // 切割String
-    // 可以使用[]和一个范围来创建字符串切片
-    // 虽然允许切割字符串,但是需要谨慎使用
-    // 如果切割时,跨越了字符边界,程序就会panic
-
-    let s = "一个范围来创建字符串切片";
-    let s = &s[3..6]; // 如果写&[3..5]会报恐慌,因为它不是一个边界,中文字符没3个字节算一个标量值边界
-    println!("{}", s);
-    
-    // 遍历String
-    // 对于字节可以使用bytes()
-    // 对于标量值使用charts()
-    // 对于字形戳,标准库未提供
-
-    /*
-     * String不简单
-     * 
-     * Rust选择将正确处理String数据作为所有Rust程序的默认行为
-     *      程序员必须在处理UTF-8编码数据之前投入更多精力
-     *      不过优势防止在于在开发后期处理涉及非ASCII字符的错误
-     * 
-     */
+    // hash函数
+    // 默认情况下，HashMap使用加密功能强大的hash函数，可以抵抗拒绝服务Dos攻击。
+    // 它不是可用最快的hash算法，但具有更好的安全性
+    // 可以指定不同的hasher来切换到另一个函数
+    // hasher是实现BuildHasher trait的类型
 }
