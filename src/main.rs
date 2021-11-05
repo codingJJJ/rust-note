@@ -1,23 +1,22 @@
-use std::io;
-use rand::Rng;
 use std::cmp::Ordering;
+use rand::Rng;
+
 fn main() {
-    println!("请输出一个数字");
-
-    let secret = rand::thread_rng().gen_range(0, 10);
-
+    let scret = rand::thread_rng().gen_range(1, 101);
     loop {
         let mut guess = String::new();
-        io::stdin().read_line(&mut guess).expect("读取失败");
-        let guess: i32 = guess.trim().parse().expect("请输入一个整数");
-        match guess.cmp(&secret) {
+        std::io::stdin().read_line(&mut guess).expect("读取失败");
+        let guess: i32 = match guess.trim().parse() {
+            Ok(i) => i,
+            Err(_) => panic!("请输入一个整数"),
+        };
+        match guess.cmp(&scret) {
             Ordering::Equal => {
-                println!("u win");
+                println!("you win!");
                 break;
             }
-            Ordering::Greater => println!("big"),
-            _ => println!("less"),
+            Ordering::Less => println!("to less"),
+            Ordering::Greater => println!("too big"),
         };
     }
-    println!("{}", secret);
 }
